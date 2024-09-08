@@ -15,6 +15,9 @@ mongoose.connect(process.env.MONGO_URL)
 
 const app = express();
 app.use(express.json());
+
+
+
 // ROUTE 
 app.get('/', (req, res) => {
     res.status(200).json({
@@ -25,6 +28,16 @@ app.get('/', (req, res) => {
 
 app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
+
+app.use((err, req, res, next) => {
+    const statusCode = err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+    return res.status(statusCode).json({
+        success: false,
+        statusCode,
+        message,
+    });
+});
 
 app.listen(3000, ()=>{
     console.log('Server listen on port 3000!!');
