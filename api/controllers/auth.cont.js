@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error.js";
+import  jwt  from "jsonwebtoken";
 
 export const    test = (req, res) => {
     res.status(200).json({
@@ -21,7 +22,31 @@ export const signUp = async (req, res, next) => {
         res.status(201).json({message : "Success created user!", data: resUser});
     } catch (err) {
         console.log(err.message);
-        // res.status(500).json({message : err.message});
+        next(err);
+    };
+};
+
+export const signIn = async (req, res, next) => {
+    console.log(req.body);
+
+    const { email, password } = req.body;
+    try {
+        const validUser = await User.findOne({email});
+        if (!validUser) return next(errorHandler(401, "Wrong crendentials"));
+        const comparePass = bcryptjs.compareSync(password,validUser.password);
+        if(comparePass === false) return next(errorHandler(401, "Wrong crendentials"));
+        const token = jwt.sign({id: validUser._id}, process.env.JWT_SECRET);
+        const {password: hashPass, ...data} = validUser._doc;
+        const expiredDate = new Date(Date.now() + parseInt(process.env.EXPIREDDATECOOKIE));
+        res.cookie('access_token', token, { 
+                httpOnly:true, 
+                expires: expiredDate
+            })
+            .status(201) 
+            .json({status : true, message : "Success created user!", data: data});
+
+    } catch (err) {
+        console.log(err.message);
         next(err);
     };
 };
