@@ -51,3 +51,41 @@ export const signIn = async (req, res, next) => {
         next(err);
     };
 };
+
+
+export const google = async (req, res, next) => {
+    let token = '';
+    let data;
+
+    try {
+        const user = await User.findOne({email: req.body.email});
+        if(user){
+            token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+            const { password, ...userData } = user._doc; //destructuring
+            data = userData;
+        }else{
+            const generatePass = Math.random().toString(36).slice(-8); //generate 8 digit pass
+            const hashPass = bcryptjs.hashSync(generatePass, 10);
+            const newUser = new User({
+                username: req.body.name.split(" ").join("").toLowerCase() + Math.floor(Math.random() * 10000).toString(),
+                email: req.body.email,
+                password : hashPass,
+                profilePic: req.body.photo
+            });
+            
+            const resUser = await newUser.save();
+            token = jwt.sign({ id: resUser._id }, process.env.JWT_SECRET);
+            const { password, ...resUserData } = resUser._doc;
+            data = resUserData;
+        }
+        const expiredDate = new Date(Date.now() + parseInt(process.env.EXPIREDDATECOOKIE)) // 1hour
+        res.cookie('access_token', token, { 
+                httpOnly:true, 
+                expires: expiredDate
+            }).status(200).json(data);
+    
+    } catch (err) {
+        console.log(err.message);
+        next(err);
+    };
+};
