@@ -64,3 +64,16 @@ export const updateProfile = async(req, res, next) => {
         next(err);
     }
 };
+
+export const deleteProfile = async(req, res, next) => {
+    if(req.user.id != req.params.id){
+        return next(errorHandler(401, 'Can only delete own Profile!'))
+    }
+    
+    try {
+        const updatedProfile = await User.findByIdAndDelete(req.params.id);
+        res.status(200).json('User has been deleted');
+    } catch (err) {
+        next(err);
+    }
+};
