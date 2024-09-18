@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage'
 import { app } from '../firebase';
 import { useDispatch } from 'react-redux';
-import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserSuccess, deleteUserFailure } from '../redux/userSlice';
+import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserSuccess, deleteUserFailure, Signout } from '../redux/userSlice';
 
 export default function Profile() {
   const {currentUser, loading, error} = useSelector(state => state.user);
@@ -97,6 +97,15 @@ export default function Profile() {
       dispatch(deleteUserFailure(err));
     }
   }
+
+  const handleSignOut = async() => {
+    try {
+      await fetch('/api/auth/signout');
+      dispatch(Signout());
+    } catch (error) {
+      console.log(error);
+    }
+  }
   
   return (
     <div className='p-3 max-w-lg mx-auto'>
@@ -123,7 +132,7 @@ export default function Profile() {
       </form>
       <div className='flex justify-between mt-5'>
         <span onClick={handleDeleteAccount} className='text-red-700 cursor-pointer'>Delete an account?</span>
-        <span className='text-red-700 cursor-pointer'>Sign Out</span>
+        <span onClick={handleSignOut} className='text-red-700 cursor-pointer'>Sign Out</span>
       </div>
       <p className='text-red-700 mt-5'>{error && "Somethink went wrong!"}</p>
       <p className='text-green-700 mt-5'>{updateSuccess && "Update Profile Success!"}</p>

@@ -52,7 +52,6 @@ export const signIn = async (req, res, next) => {
     };
 };
 
-
 export const google = async (req, res, next) => {
     let token = '';
     let data;
@@ -89,3 +88,7 @@ export const google = async (req, res, next) => {
         next(err);
     };
 };
+
+export const signOut = async (req, res) => {
+    res.clearCookie('access_token').status(200).json('Sign out sucess');
+}
